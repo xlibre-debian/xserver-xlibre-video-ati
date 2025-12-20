@@ -1,7 +1,7 @@
 Source: xserver-xlibre-video-ati
 Section: x11
 Priority: optional
-Maintainer: apebl <a@pebl.cc>
+Maintainer: NexusSfan <nexussfan@duck.com>
 Build-Depends:
  debhelper-compat (= 12),
  quilt,
@@ -9,7 +9,7 @@ Build-Depends:
  xserver-xlibre-dev (>= 2:1.15.99),
  libgl-dev,
  libgbm-dev,
- libdrm-dev (>= 2.4.89) [!hurd-i386],
+ libdrm-dev (>= 2.4.89) [!hurd-any],
  libudev-dev [linux-any],
  x11proto-dev,
  xutils-dev (>= 1:7.5+4)
