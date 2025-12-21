@@ -24,9 +24,7 @@
  *    Dave Airlie <airlied@redhat.com>
  *
  */
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <errno.h>
 #include <sys/ioctl.h>
@@ -43,20 +41,11 @@
 #include "radeon_version.h"
 #include "shadow.h"
 #include <xf86Priv.h>
-
 #include "atipciids.h"
-
-#if HAVE_PRESENT_H
 #include <present.h>
-#endif
 
 /* DPMS */
-#ifdef HAVE_XEXTPROTO_71
 #include <X11/extensions/dpmsconst.h>
-#else
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
-#endif
 
 #ifdef __DragonFly__
 #include <xf86_OSproc.h>
@@ -306,7 +295,7 @@ radeon_event_callback(CallbackListPtr *list,
      */
     client_priv->needs_flush = info->gpu_flushed;
     server_priv->needs_flush = info->gpu_flushed;
-    
+
     for (i = 0; i < eventinfo->count; i++) {
 	if (eventinfo->events[i].u.u.type == info->callback_event_type) {
 	    client_priv->needs_flush++;
@@ -432,7 +421,7 @@ radeon_scanout_extents_intersect(xf86CrtcPtr xf86_crtc, BoxPtr extents)
 }
 
 static RegionPtr
-transform_region(RegionPtr region, struct pict_f_transform *transform,
+transform_region(RegionPtr region, struct pixman_f_transform *transform,
 		 int w, int h)
 {
 	BoxPtr boxes = RegionRects(region);
@@ -561,14 +550,12 @@ dirty_region(PixmapDirtyUpdatePtr dirty)
 	RegionPtr damageregion = DamageRegion(dirty->damage);
 	RegionPtr dstregion;
 
-#ifdef HAS_DIRTYTRACKING_ROTATION
 	if (dirty->rotation != RR_Rotate_0) {
 		dstregion = transform_region(damageregion,
 					     &dirty->f_inverse,
 					     dirty->secondary_dst->drawable.width,
 					     dirty->secondary_dst->drawable.height);
 	} else
-#endif
 	{
 	    RegionRec pixregion;
 
@@ -594,11 +581,7 @@ redisplay_dirty(PixmapDirtyUpdatePtr dirty, RegionPtr region)
 	if (dirty->secondary_dst->primary_pixmap)
 	    DamageRegionAppend(&dirty->secondary_dst->drawable, region);
 
-#ifdef HAS_DIRTYTRACKING_ROTATION
 	PixmapSyncDirtyHelper(dirty);
-#else
-	PixmapSyncDirtyHelper(dirty, region);
-#endif
 
 	radeon_cs_flush_indirect(src_scrn);
 	if (dirty->secondary_dst->primary_pixmap)
@@ -852,7 +835,7 @@ radeon_prime_scanout_flip(PixmapDirtyUpdatePtr ent)
 		   "Failed to get FB for PRIME flip.\n");
 	return;
     }
-	
+
     drm_queue_seq = radeon_drm_queue_alloc(crtc,
 					   RADEON_DRM_QUEUE_CLIENT_DEFAULT,
 					   RADEON_DRM_QUEUE_ID_DEFAULT, fb,
@@ -1801,7 +1784,7 @@ Bool RADEONPreInit_KMS(ScrnInfoPtr pScrn, int flags)
 		   (unsigned)ARRAY_SIZE(pRADEONEnt->scrn));
 	return FALSE;
     }
-    
+
     if (!RADEONGetRec(pScrn)) return FALSE;
 
     info               = RADEONPTR(pScrn);
@@ -2347,7 +2330,7 @@ Bool RADEONScreenInit_KMS(ScreenPtr pScreen, int argc, char **argv)
     }
 
     radeon_cs_set_limit(info->cs, RADEON_GEM_DOMAIN_GTT, info->gart_size);
-    radeon_cs_space_set_flush(info->cs, (void(*)(void *))radeon_cs_flush_indirect, pScrn); 
+    radeon_cs_space_set_flush(info->cs, (void(*)(void *))radeon_cs_flush_indirect, pScrn);
 
     if (!radeon_setup_kernel_mem(pScreen)) {
 	xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "radeon_setup_kernel_mem failed\n");

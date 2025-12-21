@@ -24,10 +24,7 @@
  * Based on radeon_exa_render.c and kdrive ati_video.c by Eric Anholt, et al.
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -348,13 +345,13 @@ RADEONPutImageTextured(ScrnInfoPtr pScrn,
     nlines = ((y2 + 0xffff) >> 16) - top;
 
     pPriv->currentBuffer ^= 1;
-	
+
     src_bo = pPriv->src_bo[pPriv->currentBuffer];
 
     ret = radeon_bo_map(src_bo, 1);
     if (ret)
 	return BadAlloc;
-  
+
     pPriv->src_addr = src_bo->ptr;
     pPriv->src_pitch = dstPitch;
 

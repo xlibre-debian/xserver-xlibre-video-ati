@@ -23,10 +23,7 @@
  * Author: Alex Deucher <alexander.deucher@amd.com>
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "xf86.h"
 
@@ -2072,7 +2069,7 @@ EVERGREENDrawInit(ScreenPtr pScreen)
     info->accel_state->exa->UploadToScreen = EVERGREENUploadToScreen;
     info->accel_state->exa->DownloadFromScreen = EVERGREENDownloadFromScreen;
     info->accel_state->exa->CreatePixmap2 = RADEONEXACreatePixmap2;
-    info->accel_state->exa->SharePixmapBacking = RADEONEXASharePixmapBacking; 
+    info->accel_state->exa->SharePixmapBacking = RADEONEXASharePixmapBacking;
     info->accel_state->exa->SetSharedPixmapBacking = RADEONEXASetSharedPixmapBacking;
     info->accel_state->exa->flags = EXA_OFFSCREEN_PIXMAPS | EXA_SUPPORTS_PREPARE_AUX |
 	EXA_HANDLES_PIXMAPS | EXA_MIXED_PIXMAPS;
