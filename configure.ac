@@ -22,10 +22,10 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([xf86-video-ati],
-        [22.0.0],
-        [https://gitlab.freedesktop.org/xorg/driver/xf86-video-ati/-/issues],
-        [xf86-video-ati])
+AC_INIT([xlibre-xf86-video-ati],
+        [25.0.0],
+        [https://github.com/X11Libre/xf86-video-ati/issues]
+        [xlibre-xf86-video-ati])
 
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
@@ -75,17 +75,8 @@ PKG_CHECK_MODULES(LIBDRM, [libdrm >= 2.4.89])
 PKG_CHECK_MODULES(LIBDRM_RADEON, [libdrm_radeon])
 
 # Obtain compiler/linker options for the driver dependencies
-PKG_CHECK_MODULES(XORG, [xorg-server >= 1.13 xproto fontsproto xf86driproto $REQUIRED_MODULES])
-PKG_CHECK_MODULES(XEXT, [xextproto >= 7.0.99.1],
-                  HAVE_XEXTPROTO_71="yes"; AC_DEFINE(HAVE_XEXTPROTO_71, 1, [xextproto 7.1 available]),
-                  HAVE_XEXTPROTO_71="no")
-AM_CONDITIONAL(HAVE_XEXTPROTO_71, [ test "$HAVE_XEXTPROTO_71" = "yes" ])
-
-# Section "OutputClass" is only supported as of xserver 1.16
-PKG_CHECK_EXISTS([xorg-server >= 1.16],
-		 [sysconfigdir=`$PKG_CONFIG --variable=sysconfigdir xorg-server`],
-		 [sysconfigdir=""])
-AM_CONDITIONAL(HAS_XORG_CONF_DIR, [test "x$sysconfigdir" != "x"])
+PKG_CHECK_MODULES(XORG, [xorg-server >= 1.18 xproto fontsproto xf86driproto $REQUIRED_MODULES])
+PKG_CHECK_MODULES(XEXT, [xextproto >= 7.0.99.1])
 
 # Define a configure option for an alternate X Server configuration directory
 AC_ARG_WITH(xorg-conf-dir,
@@ -155,33 +146,11 @@ else
 fi
 AM_CONDITIONAL(GLAMOR, test x$GLAMOR != xno)
 
-AC_CHECK_DECL(RegionDuplicate,
-	      [AC_DEFINE(HAVE_REGIONDUPLICATE, 1,
-	      [Have RegionDuplicate API])], [],
-	      [#include <xorg-server.h>
-	       #include <regionstr.h>])
-
 AC_CHECK_DECL(xf86CursorResetCursor,
 	      [AC_DEFINE(HAVE_XF86_CURSOR_RESET_CURSOR, 1,
 	      [Have xf86CursorResetCursor API])], [],
 	      [#include <xorg-server.h>
 	       #include <xf86Cursor.h>])
-
-AC_CHECK_HEADERS([misyncshm.h], [], [],
-                 [#include <X11/Xdefs.h>
-	          #include <X11/Xfuncproto.h>
-	          #include <xorg-server.h>
-		  #include <screenint.h>])
-
-AC_CHECK_HEADERS([present.h], [], [],
-		 [#include <X11/Xmd.h>
-		 #include <X11/Xproto.h>
-		 #include "xorg-server.h"
-		 #include <X11/X.h>])
-
-AC_CHECK_HEADERS([dri3.h], [], [],
-		 [#include <X11/Xmd.h>
-		 #include <xorg-server.h>])
 
 CPPFLAGS="$SAVE_CPPFLAGS"
 
@@ -227,7 +196,7 @@ b = bswap16(a);
     	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
 		USE_SYS_ENDIAN_H=yes
 		BSWAP=bswap
-	else	
+	else
 	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
 			USE_SYS_ENDIAN_H=yes
 			BSWAP=__swap
@@ -237,40 +206,20 @@ b = bswap16(a);
 	fi
 
 	if test "$USE_SYS_ENDIAN_H" = "yes" ; then
-	    AC_DEFINE([USE_SYS_ENDIAN_H], 1, 
+	    AC_DEFINE([USE_SYS_ENDIAN_H], 1,
 		[Define to use byteswap macros from <sys/endian.h>])
-	    AC_DEFINE_UNQUOTED([radeon_bswap_16], ${BSWAP}16, 
+	    AC_DEFINE_UNQUOTED([radeon_bswap_16], ${BSWAP}16,
 			[Define to 16-bit byteswap macro])
-	    AC_DEFINE_UNQUOTED([radeon_bswap_32], ${BSWAP}32, 
+	    AC_DEFINE_UNQUOTED([radeon_bswap_32], ${BSWAP}32,
 			[Define to 32-bit byteswap macro])
-	    AC_DEFINE_UNQUOTED([radeon_bswap_64], ${BSWAP}64, 
+	    AC_DEFINE_UNQUOTED([radeon_bswap_64], ${BSWAP}64,
 			[Define to 64-bit byteswap macro])
 	fi
 fi
 
 AC_SUBST([moduledir])
 
-DRIVER_NAME=ati
-AC_SUBST([DRIVER_NAME])
-
-AC_MSG_NOTICE(
-[The atimisc sub-driver has been split out to xf86-video-mach64:]
-[    https://gitlab.freedesktop.org/xorg/driver/xf86-video-mach64]
-[Please install that driver as well for mach64-based cards.]
-)
-
-AC_MSG_NOTICE(
-[The r128 sub-driver has been split out to xf86-video-r128:]
-[    https://gitlab.freedesktop.org/xorg/driver/xf86-video-r128]
-[Please install that driver as well for rage128-based cards.]
-)
-
-AC_CONFIG_FILES([
-                Makefile
-                src/Makefile
-                man/Makefile
-                conf/Makefile
-])
+AC_CONFIG_FILES([Makefile src/Makefile man/Makefile conf/Makefile])
 AC_OUTPUT
 
 dnl

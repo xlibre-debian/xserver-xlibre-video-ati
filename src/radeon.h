@@ -97,25 +97,6 @@
 
 struct _SyncFence;
 
-#ifndef HAVE_REGIONDUPLICATE
-
-static inline RegionPtr
-RegionDuplicate(RegionPtr pOld)
-{
-    RegionPtr pNew;
-
-    pNew = RegionCreate(&pOld->extents, 0);
-    if (!pNew)
-	return NULL;
-    if (!RegionCopy(pNew, pOld)) {
-	RegionDestroy(pNew);
-	return NULL;
-    }
-    return pNew;
-}
-
-#endif
-
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #endif
@@ -137,7 +118,7 @@ RegionDuplicate(RegionPtr pOld)
 #define radeon_bswap_32(value) \
         (((uint32_t)radeon_bswap_16((uint16_t)((value) & 0xffff)) << 16) | \
         (uint32_t)radeon_bswap_16((uint16_t)((value) >> 16)))
- 
+
 #define radeon_bswap_64(value) \
         (((uint64_t)radeon_bswap_32((uint32_t)((value) & 0xffffffff)) \
             << 32) | \
@@ -364,7 +345,7 @@ struct radeon_2d_state {
     struct radeon_bo *dst_bo;
     struct radeon_bo *src_bo;
 };
-    
+
 #define DMA_BO_FREE_TIME 1000
 
 struct radeon_dma_bo {
@@ -569,7 +550,7 @@ typedef struct {
     Bool              r600_shadow_fb;
     void *fb_shadow;
 
-    void (*reemit_current2d)(ScrnInfoPtr pScrn, int op); // emit the current 2D state into the IB 
+    void (*reemit_current2d)(ScrnInfoPtr pScrn, int op); // emit the current 2D state into the IB
     struct radeon_2d_state state_2d;
     struct radeon_buffer *front_buffer;
     struct radeon_bo_manager *bufmgr;
@@ -881,7 +862,7 @@ radeon_pixmap_get_fb(PixmapPtr pix)
 
     if (fb_ptr && *fb_ptr)
 	return *fb_ptr;
-	
+
     if (radeon_get_pixmap_handle(pix, &handle)) {
 	ScrnInfoPtr scrn = xf86ScreenToScrn(pix->drawable.pScreen);
 	RADEONEntPtr pRADEONEnt = RADEONEntPriv(scrn);

@@ -28,10 +28,7 @@
  *    Benjamin Herrenschmidt <benh@kernel.crashing.org>
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "radeon.h"
 #include "radeon_reg.h"
@@ -207,7 +204,7 @@ Bool RADEONPrepareAccess_CS(PixmapPtr pPix, int index)
 
     if (flush)
         radeon_cs_flush_indirect(pScrn);
-    
+
     /* flush IB */
     ret = radeon_bo_map(driver_priv->bo->bo.radeon, 1);
     if (ret) {

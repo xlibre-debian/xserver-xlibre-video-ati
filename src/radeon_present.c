@@ -20,14 +20,9 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
  * OF THIS SOFTWARE.
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include "radeon.h"
-
-#ifdef HAVE_PRESENT_H
 
 #include <stdio.h>
 #include <string.h>
@@ -486,17 +481,3 @@ radeon_present_screen_init(ScreenPtr screen)
 
     return TRUE;
 }
-
-#else /* !HAVE_PRESENT_H */
-
-Bool
-radeon_present_screen_init(ScreenPtr screen)
-{
-    xf86DrvMsg(xf86ScreenToScrn(screen)->scrnIndex, X_INFO,
-	       "Present extension disabled because present.h not available at "
-	       "build time\n");
-
-    return FALSE;
-}
-
-#endif

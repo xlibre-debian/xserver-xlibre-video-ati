@@ -24,10 +24,7 @@
  *    Dave Airlie <airlied@redhat.com>
  *
  */
-
-#ifdef HAVE_CONFIG_H
 #include "config.h"
-#endif
 
 #include <errno.h>
 #include <sys/ioctl.h>
@@ -47,12 +44,7 @@
 #include "drmmode_display.h"
 
 /* DPMS */
-#ifdef HAVE_XEXTPROTO_71
 #include <X11/extensions/dpmsconst.h>
-#else
-#define DPMS_SERVER
-#include <X11/extensions/dpms.h>
-#endif
 
 #define DEFAULT_NOMINAL_FRAME_RATE 60
 
@@ -565,7 +557,7 @@ drmmode_crtc_scanout_create(xf86CrtcPtr crtc, struct drmmode_scanout *scanout,
 		scanout->height = height;
 	} else {
 		ErrorF("failed to create CRTC scanout FB\n");
-error:		
+error:
 		drmmode_crtc_scanout_destroy(drmmode, scanout);
 	}
 
@@ -726,7 +718,7 @@ drmmode_crtc_prime_scanout_update(xf86CrtcPtr crtc, DisplayModePtr mode,
 	*x = *y = 0;
 	drmmode_crtc->scanout_id = scanout_id;
 }
-	
+
 
 static void
 drmmode_crtc_scanout_update(xf86CrtcPtr crtc, DisplayModePtr mode,
@@ -1357,14 +1349,9 @@ drmmode_set_scanout_pixmap(xf86CrtcPtr crtc, PixmapPtr ppix)
 	PixmapStartDirtyTracking(&ppix->drawable,
 				 drmmode_crtc->scanout[scanout_id].pixmap,
 				 0, 0, 0, 0, RR_Rotate_0);
-#elif defined(HAS_DIRTYTRACKING_ROTATION)
+#else
 	PixmapStartDirtyTracking(ppix, drmmode_crtc->scanout[scanout_id].pixmap,
 				 0, 0, 0, 0, RR_Rotate_0);
-#elif defined(HAS_DIRTYTRACKING2)
-	PixmapStartDirtyTracking2(ppix, drmmode_crtc->scanout[scanout_id].pixmap,
-				  0, 0, 0, 0);
-#else
-	PixmapStartDirtyTracking(ppix, drmmode_crtc->scanout[scanout_id].pixmap, 0, 0);
 #endif
 	return TRUE;
 }
@@ -1775,7 +1762,7 @@ drmmode_output_create_resources(xf86OutputPtr output)
     drmmode_output->props = calloc(mode_output->count_props + 1, sizeof(drmmode_prop_rec));
     if (!drmmode_output->props)
 	return;
-    
+
     drmmode_output->num_props = 0;
     for (i = 0, j = 0; i < mode_output->count_props; i++) {
 	drmmode_prop = drmModeGetProperty(pRADEONEnt->fd, mode_output->props[i]);
@@ -2189,7 +2176,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
 #if XF86_CRTC_VERSION >= 8
 	output->non_desktop = nonDesktop;
 #endif
-	
+
 	output->possible_crtcs = 0xffffffff;
 	for (i = 0; i < koutput->count_encoders; i++) {
 		output->possible_crtcs &= kencoders[i]->possible_crtcs;
@@ -2233,7 +2220,7 @@ uint32_t find_clones(ScrnInfoPtr scrn, xf86OutputPtr output)
 		clone_drmout = clone_output->driver_private;
 		if (output == clone_output)
 			continue;
-		
+
 		if (clone_drmout->enc_mask == 0)
 			continue;
 		if (drmmode_output->enc_clone_mask == clone_drmout->enc_mask)
@@ -2699,7 +2686,7 @@ drm_wakeup_handler(pointer data, int err, pointer p)
 {
 	drmmode_ptr drmmode = data;
 	RADEONEntPtr pRADEONEnt = RADEONEntPriv(drmmode->scrn);
-	
+
 #if !HAVE_NOTIFY_FD
 	fd_set *read_mask = p;
 
@@ -3016,7 +3003,7 @@ miPointerSpriteFuncRec drmmode_sprite_funcs = {
 	.DeviceCursorCleanup = drmmode_sprite_device_cursor_cleanup,
 };
 
-	
+
 void drmmode_adjust_frame(ScrnInfoPtr pScrn, drmmode_ptr drmmode, int x, int y)
 {
 	xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
