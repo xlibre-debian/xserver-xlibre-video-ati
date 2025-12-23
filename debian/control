@@ -14,8 +14,8 @@ Build-Depends:
  x11proto-dev,
  xutils-dev (>= 1:7.5+4)
 Standards-Version: 4.6.2
-Vcs-Git: https://github.com/xlibre-deb/xserver-xlibre-video-ati.git
-Vcs-Browser: https://github.com/xlibre-deb/xserver-xlibre-video-ati
+Vcs-Git: https://github.com/xlibre-debian/xserver-xlibre-video-ati.git
+Vcs-Browser: https://github.com/xlibre-debian/xserver-xlibre-video-ati
 Homepage: https://github.com/X11Libre
 
 Package: xserver-xlibre-video-ati
