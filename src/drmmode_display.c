@@ -48,10 +48,6 @@
 
 #define DEFAULT_NOMINAL_FRAME_RATE 60
 
-#if GET_ABI_MAJOR(ABI_VIDEODRV_VERSION) >= 22
-#define HAVE_NOTIFY_FD	1
-#endif
-
 static Bool
 drmmode_xf86crtc_resize (ScrnInfoPtr scrn, int width, int height);
 
@@ -602,15 +598,6 @@ drmmode_can_use_hw_cursor(xf86CrtcPtr crtc)
 	if (crtc->transformPresent)
 		return FALSE;
 
-#if XF86_CRTC_VERSION < 7
-	/* Xorg doesn't correctly handle cursor position transform in the
-	 * rotation case
-	 */
-	if (crtc->driverIsPerformingTransform &&
-	    (crtc->rotation & 0xf) != RR_Rotate_0)
-		return FALSE;
-#endif
-
 	return TRUE;
 }
 
@@ -641,11 +628,6 @@ drmmode_crtc_update_tear_free(xf86CrtcPtr crtc)
 		}
 	}
 }
-
-#if XF86_CRTC_VERSION < 7
-#define XF86DriverTransformOutput TRUE
-#define XF86DriverTransformNone FALSE
-#endif
 
 static Bool
 drmmode_handle_transform(xf86CrtcPtr crtc)
@@ -984,54 +966,11 @@ drmmode_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 	drmmode_crtc_private_ptr drmmode_crtc = crtc->driver_private;
 	RADEONEntPtr pRADEONEnt = RADEONEntPriv(crtc->scrn);
 
-#if XF86_CRTC_VERSION < 7
-	if (crtc->driverIsPerformingTransform) {
-		x += crtc->x;
-		y += crtc->y;
-		xf86CrtcTransformCursorPos(crtc, &x, &y);
-	}
-#endif
-
 	drmmode_crtc->cursor_x = x;
 	drmmode_crtc->cursor_y = y;
 
 	drmModeMoveCursor(pRADEONEnt->fd, drmmode_crtc->mode_crtc->crtc_id, x, y);
 }
-
-#if XF86_CRTC_VERSION < 7
-
-static int
-drmmode_cursor_src_offset(Rotation rotation, int width, int height,
-			  int x_dst, int y_dst)
-{
-	int t;
-
-	switch (rotation & 0xf) {
-	case RR_Rotate_90:
-		t = x_dst;
-		x_dst = height - y_dst - 1;
-		y_dst = t;
-		break;
-	case RR_Rotate_180:
-		x_dst = width - x_dst - 1;
-		y_dst = height - y_dst - 1;
-		break;
-	case RR_Rotate_270:
-		t = x_dst;
-		x_dst = y_dst;
-		y_dst = width - t - 1;
-		break;
-	}
-
-	if (rotation & RR_Reflect_X)
-		x_dst = width - x_dst - 1;
-	if (rotation & RR_Reflect_Y)
-		y_dst = height - y_dst - 1;
-
-	return y_dst * height + x_dst;
-}
-
-#endif
 
 static Bool
 drmmode_cursor_pixel(xf86CrtcPtr crtc, uint32_t *argb, Bool *premultiplied,
@@ -1105,29 +1044,6 @@ drmmode_load_cursor_argb (xf86CrtcPtr crtc, CARD32 *image)
 	if (crtc->scrn->depth != 24 && crtc->scrn->depth != 32)
 		apply_gamma = FALSE;
 
-#if XF86_CRTC_VERSION < 7
-	if (crtc->driverIsPerformingTransform) {
-		uint32_t cursor_w = info->cursor_w, cursor_h = info->cursor_h;
-		int dstx, dsty;
-		int srcoffset;
-
-retry_transform:
-		for (dsty = 0; dsty < cursor_h; dsty++) {
-			for (dstx = 0; dstx < cursor_w; dstx++) {
-				srcoffset = drmmode_cursor_src_offset(crtc->rotation,
-								      cursor_w,
-								      cursor_h,
-								      dstx, dsty);
-				argb = image[srcoffset];
-				if (!drmmode_cursor_pixel(crtc, &argb, &premultiplied,
-							  &apply_gamma))
-					goto retry_transform;
-
-				ptr[dsty * info->cursor_w + dstx] = cpu_to_le32(argb);
-			}
-		}
-	} else
-#endif
 	{
 		uint32_t cursor_size = info->cursor_w * info->cursor_h;
 		int i;
@@ -2082,9 +1998,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
 	drmModeEncoderPtr *kencoders = NULL;
 	drmmode_output_private_ptr drmmode_output;
 	drmModePropertyBlobPtr path_blob = NULL;
-#if XF86_CRTC_VERSION >= 8
 	Bool nonDesktop = FALSE;
-#endif
 	char name[32];
 	int i;
 	const char *s;
@@ -2095,12 +2009,10 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
 
 	path_blob = koutput_get_prop_blob(pRADEONEnt->fd, koutput, "PATH");
 
-#if XF86_CRTC_VERSION >= 8
 	i = koutput_get_prop_idx(pRADEONEnt->fd, koutput, DRM_MODE_PROP_RANGE,
 				 "non-desktop");
 	if (i >= 0)
 		nonDesktop = koutput->prop_values[i] != 0;
-#endif
 
 	kencoders = calloc(sizeof(drmModeEncoderPtr), koutput->count_encoders);
 	if (!kencoders) {
@@ -2131,9 +2043,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
 			drmmode_output = output->driver_private;
 			drmmode_output->output_id = mode_res->connectors[num];
 			drmmode_output->mode_output = koutput;
-#if XF86_CRTC_VERSION >= 8
 			output->non_desktop = nonDesktop;
-#endif
 			for (i = 0; i < koutput->count_encoders; i++)
 				drmModeFreeEncoder(kencoders[i]);
 			free(kencoders);
@@ -2173,9 +2083,7 @@ drmmode_output_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode, drmModeResPtr mode_r
 	output->interlaceAllowed = TRUE;
 	output->doubleScanAllowed = TRUE;
 	output->driver_private = drmmode_output;
-#if XF86_CRTC_VERSION >= 8
 	output->non_desktop = nonDesktop;
-#endif
 
 	output->possible_crtcs = 0xffffffff;
 	for (i = 0; i < koutput->count_encoders; i++) {
@@ -2675,26 +2583,12 @@ drmmode_flip_handler(xf86CrtcPtr crtc, uint32_t frame, uint64_t usec, void *even
 	}
 }
 
-
-#if HAVE_NOTIFY_FD
 static void
 drm_notify_fd(int fd, int ready, void *data)
-#else
-static void
-drm_wakeup_handler(pointer data, int err, pointer p)
-#endif
 {
 	drmmode_ptr drmmode = data;
 	RADEONEntPtr pRADEONEnt = RADEONEntPriv(drmmode->scrn);
-
-#if !HAVE_NOTIFY_FD
-	fd_set *read_mask = p;
-
-	if (err >= 0 && FD_ISSET(pRADEONEnt->fd, read_mask))
-#endif
-	{
-		radeon_drm_handle_event(pRADEONEnt->fd, &drmmode->event_context);
-	}
+	radeon_drm_handle_event(pRADEONEnt->fd, &drmmode->event_context);
 }
 
 static Bool drmmode_probe_page_flip_target(RADEONEntPtr pRADEONEnt)
@@ -2857,15 +2751,8 @@ void drmmode_init(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 
 	info->drmmode_inited = TRUE;
 	if (pRADEONEnt->fd_wakeup_registered != serverGeneration) {
-#if HAVE_NOTIFY_FD
 		SetNotifyFd(pRADEONEnt->fd, drm_notify_fd, X_NOTIFY_READ,
 			    &info->drmmode);
-#else
-		AddGeneralSocket(pRADEONEnt->fd);
-		RegisterBlockAndWakeupHandlers((BlockHandlerProcPtr)NoopDDA,
-					       drm_wakeup_handler,
-					       &info->drmmode);
-#endif
 		pRADEONEnt->fd_wakeup_registered = serverGeneration;
 		pRADEONEnt->fd_wakeup_ref = 1;
 	} else
@@ -2887,16 +2774,9 @@ void drmmode_fini(ScrnInfoPtr pScrn, drmmode_ptr drmmode)
 
 	if (pRADEONEnt->fd_wakeup_registered == serverGeneration &&
 	    !--pRADEONEnt->fd_wakeup_ref) {
-#if HAVE_NOTIFY_FD
 		RemoveNotifyFd(pRADEONEnt->fd);
-#else
-		RemoveGeneralSocket(pRADEONEnt->fd);
-		RemoveBlockAndWakeupHandlers((BlockHandlerProcPtr)NoopDDA,
-				drm_wakeup_handler, pScrn);
-#endif
 	}
 }
-
 
 Bool drmmode_set_bufmgr(ScrnInfoPtr pScrn, drmmode_ptr drmmode, struct radeon_bo_manager *bufmgr)
 {

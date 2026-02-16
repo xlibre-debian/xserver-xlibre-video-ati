@@ -23,8 +23,8 @@
 # Initialize Autoconf
 AC_PREREQ([2.60])
 AC_INIT([xlibre-xf86-video-ati],
-        [25.0.0],
-        [https://github.com/X11Libre/xf86-video-ati/issues]
+        [25.0.1],
+        [https://github.com/X11Libre/xf86-video-ati/issues],
         [xlibre-xf86-video-ati])
 
 AC_CONFIG_SRCDIR([Makefile.am])
@@ -35,7 +35,6 @@ AC_CONFIG_AUX_DIR(.)
 
 # Initialize Automake
 AM_INIT_AUTOMAKE([foreign dist-xz])
-AC_SYS_LARGEFILE
 
 # Require X.Org macros 1.8 or later for MAN_SUBSTS set by XORG_MANPAGE_SECTIONS
 m4_ifndef([XORG_MACROS_VERSION],
@@ -75,7 +74,7 @@ PKG_CHECK_MODULES(LIBDRM, [libdrm >= 2.4.89])
 PKG_CHECK_MODULES(LIBDRM_RADEON, [libdrm_radeon])
 
 # Obtain compiler/linker options for the driver dependencies
-PKG_CHECK_MODULES(XORG, [xorg-server >= 1.18 xproto fontsproto xf86driproto $REQUIRED_MODULES])
+PKG_CHECK_MODULES(XORG, [xorg-server >= 25.0.0 xproto fontsproto xf86driproto $REQUIRED_MODULES])
 PKG_CHECK_MODULES(XEXT, [xextproto >= 7.0.99.1])
 
 # Define a configure option for an alternate X Server configuration directory
@@ -159,9 +158,9 @@ XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
 # Checks for headers/macros for byte swapping
 # Known variants:
-#	<byteswap.h> bswap_16, bswap_32, bswap_64  (glibc)
+#	<byteswap.h> bswap_16, bswap_32 (glibc)
 #	<sys/endian.h> __swap16, __swap32, __swap64 (OpenBSD)
-#	<sys/endian.h> bswap16, bswap32, bswap64 (other BSD's)
+#	<sys/endian.h> bswap16, bswap32 (other BSD's)
 #	and a fallback to local macros if none of the above are found
 
 # if <byteswap.h> is found, assume it's the correct version
@@ -212,8 +211,6 @@ b = bswap16(a);
 			[Define to 16-bit byteswap macro])
 	    AC_DEFINE_UNQUOTED([radeon_bswap_32], ${BSWAP}32,
 			[Define to 32-bit byteswap macro])
-	    AC_DEFINE_UNQUOTED([radeon_bswap_64], ${BSWAP}64,
-			[Define to 64-bit byteswap macro])
 	fi
 fi
 
